@@ -101,6 +101,10 @@ public:
 
     float Mlb_closestb;
     float Mlb_lead_bdiscr;
+    float Mlb_closestb_jup;
+    float Mlb_lead_bdiscr_jup;
+    float Mlb_closestb_jdown;
+    float Mlb_lead_bdiscr_jdown;
     float Mlb_closestb_lep2;
     float Mlb_lead_bdiscr_lep2;
     float Mjjj;
@@ -141,7 +145,14 @@ public:
     float filt_trkPOG_logerr_tmc;
     float filt_trkPOG_tmc;
     float filt_trkPOG_tms;
-
+    bool  filt_fastsimjets;
+    bool  filt_fastsimjets_jup;
+    bool  filt_fastsimjets_jdown;
+    bool  filt_jetWithBadMuon;
+    bool  filt_jetWithBadMuon_jup;
+    bool  filt_jetWithBadMuon_jdown;
+    bool  filt_pfovercalomet;
+    
     float dR_lep_leadb;
     float dR_lep2_leadb;    
     float mindphi_met_j1_j2;
@@ -227,9 +238,6 @@ public:
     float weight_loosebtagsf_fastsim_DN;
     int   NISRjets;
     int   NnonISRjets;
-    bool  filt_fastsimjets;
-    bool  filt_fastsimjets_jup;
-    bool  filt_fastsimjets_jdown;
     float hardgenpt;
     //sparms
 //    vecs  sparms_comment;
@@ -256,10 +264,14 @@ public:
     int HLT_SingleEl;
     int HLT_MET;
     int HLT_MET100_MHT100;
+    int HLT_MET110_MHT110;
+    int HLT_MET120_MHT120;
     int HLT_DiEl;
     int HLT_DiMu;
     int HLT_MuE;
 
+    int HLT_PFHT_unprescaled;
+    int HLT_PFHT_prescaled;
     int HLT_Photon22_R9Id90_HE10_IsoM;
     int HLT_Photon30_R9Id90_HE10_IsoM;
     int HLT_Photon36_R9Id90_HE10_IsoM;

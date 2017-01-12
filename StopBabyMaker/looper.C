@@ -719,7 +719,7 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
   TH1D *hPUup;
   TH1D *hPUdown;
   if(!isDataFromFileName){
-    pileupfile = new TFile("puWeights_2015data_2p2fbinv.root","READ");
+    pileupfile = new TFile("puWeights_2016data_36p6fbinv.root","READ");
     if(pileupfile->IsZombie()) {
       std::cout << "Somehow puWeights_2015data_2p2fbinv.root is corrupted. Exit..." << std::endl;
       exit(0);
@@ -1050,31 +1050,32 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
         float SMSsum_of_weights= 0;
         float SMSaverage_of_weights= 0;
         //error on pdf replicas
-        if(genweights().size()>109){ //fix segfault
-          for(int ipdf=9;ipdf<109;ipdf++){
+	//fastsim has first genweights bin being ==1
+        if(genweights().size()>110){ //fix segfault
+          for(int ipdf=10;ipdf<110;ipdf++){
             SMSaverage_of_weights += cms3.genweights().at(ipdf);
           }// average of weights
           SMSaverage_of_weights =  average_of_weights/100.;
-          for(int ipdf=9;ipdf<109;ipdf++){
+          for(int ipdf=10;ipdf<110;ipdf++){
             SMSsum_of_weights += pow(cms3.genweights().at(ipdf)- SMSaverage_of_weights,2);
           }//std of weights.
           SMSpdf_weight_up = (average_of_weights+sqrt(SMSsum_of_weights/99.));
           SMSpdf_weight_down = (average_of_weights-sqrt(SMSsum_of_weights/99.));
           StopEvt.pdf_up_weight = SMSpdf_weight_up;//overwrite here, although it should not matter
           StopEvt.pdf_down_weight = SMSpdf_weight_down;//overwrite here, although it should not matter
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,1,genweights()[0]);
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,2,genweights()[1]);
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,3,genweights()[2]);
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,4,genweights()[3]);
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,5,genweights()[4]);
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,6,genweights()[5]);
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,7,genweights()[6]);
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,8,genweights()[7]);
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,9,genweights()[8]);
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,1,genweights()[1]);
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,2,genweights()[2]);
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,3,genweights()[3]);
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,4,genweights()[4]);
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,5,genweights()[5]);
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,6,genweights()[6]);
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,7,genweights()[7]);
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,8,genweights()[8]);
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,9,genweights()[9]);
           counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,10,SMSpdf_weight_up);
           counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,11,SMSpdf_weight_down);
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,12,genweights()[109]); // α_s variation. 
-          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,13,genweights()[110]); // α_s variation.
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,12,genweights()[110]); // α_s variation. 
+          counterhistSig->Fill(StopEvt.mass_stop,StopEvt.mass_lsp,13,genweights()[111]); // α_s variation.
         }
       }// is signal
       //
@@ -1281,7 +1282,8 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
 	StopEvt.pfmet = evt_pfmet();
 	StopEvt.pfmet_phi = evt_pfmetPhi();
       }
-      
+      StopEvt.filt_pfovercalomet = !(StopEvt.calomet>0&&StopEvt.pfmet/StopEvt.calomet>5);
+
       //
       //Lepton Variables
       //
@@ -1380,7 +1382,17 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
       if( nVetoLeptons > 0 ) lep1.FillCommon( AllLeps.at(0).id, AllLeps.at(0).idx );
       if( nVetoLeptons > 1 ) lep2.FillCommon( AllLeps.at(1).id, AllLeps.at(1).idx );
 
-
+      //fill lep-dphi
+      if( nVetoLeptons > 0 ) {
+	lep1.dphiMET = getdphi(lep1.p4.Phi(),StopEvt.pfmet_phi);
+	lep1.dphiMET_jup = getdphi(lep1.p4.Phi(),StopEvt.pfmet_phi_jup);
+	lep1.dphiMET_jdown = getdphi(lep1.p4.Phi(),StopEvt.pfmet_phi_jdown);
+      }
+      if( nVetoLeptons > 1 ) {
+	lep2.dphiMET = getdphi(lep2.p4.Phi(),StopEvt.pfmet_phi);
+	lep2.dphiMET_jup = getdphi(lep2.p4.Phi(),StopEvt.pfmet_phi_jup);
+	lep2.dphiMET_jdown = getdphi(lep2.p4.Phi(),StopEvt.pfmet_phi_jdown);
+      }
       // Lepton SFs
       float lepSF_pt_cutoff = 99.999;
       float lepSF_pt_min    = 10.001;
@@ -1746,6 +1758,25 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
         //jets_jdown.FillCommon(idx_alloverlapjets_jdown, jet_corrector_pfL1FastJetL2L3,btagprob_data_jdown,btagprob_mc_jdown,btagprob_heavy_UP_jdown, btagprob_heavy_DN_jdown, btagprob_light_UP_jdown,btagprob_light_DN_jdown,btagprob_FS_UP_jdown,btagprob_FS_DN_jdown,jet_overlep1_idx, jet_overlep2_idx,true,jetcorr_uncertainty_sys,-1, false, skim_isFastsim);
 	jets_jdown.FillCommon(idx_alloverlapjets_jdown, jet_corrector_pfL1FastJetL2L3,btagprob_data_jdown,btagprob_mc_jdown,btagprob_heavy_UP_jdown, btagprob_heavy_DN_jdown, btagprob_light_UP_jdown,btagprob_light_DN_jdown,btagprob_FS_UP_jdown,btagprob_FS_DN_jdown,loosebtagprob_data_jdown,loosebtagprob_mc_jdown,loosebtagprob_heavy_UP_jdown, loosebtagprob_heavy_DN_jdown, loosebtagprob_light_UP_jdown,loosebtagprob_light_DN_jdown,loosebtagprob_FS_UP_jdown,loosebtagprob_FS_DN_jdown,tightbtagprob_data_jdown,tightbtagprob_mc_jdown,tightbtagprob_heavy_UP_jdown, tightbtagprob_heavy_DN_jdown, tightbtagprob_light_UP_jdown,tightbtagprob_light_DN_jdown,tightbtagprob_FS_UP_jdown,tightbtagprob_FS_DN_jdown,jet_overlep1_idx, jet_overlep2_idx,true,jetcorr_uncertainty_sys,-1, false, skim_isFastsim);
 
+	bool isbadmuonjet = false;
+	for(unsigned int jdx = 0; jdx<jets.ak4pfjets_p4.size(); ++jdx){
+	  jets.dphi_ak4pfjet_met[jdx] = getdphi(jets.ak4pfjets_p4[jdx].Phi(),StopEvt.pfmet_phi);
+	  if(jets.ak4pfjets_p4[jdx].Pt()>200 && jets.dphi_ak4pfjet_met[jdx]>(TMath::Pi()-0.4) && jets.ak4pfjets_muf[jdx]>0.5) isbadmuonjet = true;
+	}
+	StopEvt.filt_jetWithBadMuon = !isbadmuonjet;
+	isbadmuonjet = false;
+	for(unsigned int jdx = 0; jdx<jets_jup.ak4pfjets_p4.size(); ++jdx){
+	  jets_jup.dphi_ak4pfjet_met[jdx] = getdphi(jets_jup.ak4pfjets_p4[jdx].Phi(),StopEvt.pfmet_phi);
+	  if(jets_jup.ak4pfjets_p4[jdx].Pt()>200 && jets_jup.dphi_ak4pfjet_met[jdx]>(TMath::Pi()-0.4) && jets_jup.ak4pfjets_muf[jdx]>0.5) isbadmuonjet = true;
+	}
+	StopEvt.filt_jetWithBadMuon_jup = !isbadmuonjet;
+	isbadmuonjet = false;
+	for(unsigned int jdx = 0; jdx<jets_jdown.ak4pfjets_p4.size(); ++jdx){
+	  jets_jdown.dphi_ak4pfjet_met[jdx] = getdphi(jets_jdown.ak4pfjets_p4[jdx].Phi(),StopEvt.pfmet_phi);
+	  if(jets_jdown.ak4pfjets_p4[jdx].Pt()>200 && jets_jdown.dphi_ak4pfjet_met[jdx]>(TMath::Pi()-0.4) && jets_jdown.ak4pfjets_muf[jdx]>0.5) isbadmuonjet = true;
+	}
+	StopEvt.filt_jetWithBadMuon_jdown = !isbadmuonjet;
+	
       }
       if (!evt_isRealData()){
 	int NISRjets = 0;
@@ -1881,6 +1912,7 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
       if(StopEvt.pfmet < skim_met) continue;
       nEvents_pass_skim_met++;
       */
+     
       if(nGoodLeptons < skim_nGoodLep) continue;
       nEvents_pass_skim_nGoodLep++;
 
@@ -1903,7 +1935,7 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
 	fastsimfilt = true;
 	break;
       }
-      StopEvt.filt_fastsimjets = fastsimfilt;
+      StopEvt.filt_fastsimjets = !fastsimfilt;
 
       // FastSim filter, JESup Jets
       bool fastsimfilt_jup = false;
@@ -1919,7 +1951,7 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
 	fastsimfilt_jup = true;
 	break;
       }
-      StopEvt.filt_fastsimjets_jup = fastsimfilt_jup;
+      StopEvt.filt_fastsimjets_jup = !fastsimfilt_jup;
 
       // FastSim filter, JESdn Jets
       bool fastsimfilt_jdown = false;
@@ -1935,7 +1967,7 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
 	fastsimfilt_jdown = true;
 	break;
       }
-      StopEvt.filt_fastsimjets_jdown = fastsimfilt_jdown;
+      StopEvt.filt_fastsimjets_jdown = !fastsimfilt_jdown;
 
       //
       // Photon Selection
@@ -2053,8 +2085,11 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
         // ModTopness
         if(nVetoLeptons>0) StopEvt.topnessMod_jdown = CalcTopness_(1,StopEvt.pfmet_jdown,StopEvt.pfmet_phi_jdown,lep1.p4,mybjets_jdown,myaddjets_jdown);
       }
+
       
       vector<pair<float, int> > rankminDR; 
+      vector<pair<float, int> > rankminDR_jup; 
+      vector<pair<float, int> > rankminDR_jdown; 
       vector<pair<float, int> > rankmaxDPhi;
       vector<pair<float, int> > rankminDR_lep2;
       vector<pair<float, int> > rankmaxDPhi_lep2;
@@ -2072,7 +2107,23 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
 	mypair.first = dRbetweenVectors(jets.ak4pfjets_p4.at(idx),lep2.p4);
 	rankminDR_lep2.push_back(mypair);
       }
+      for (unsigned int idx = 0; idx < jets_jup.ak4pfjets_p4.size(); ++idx){
+	if(nVetoLeptons==0) continue;
+	pair<float, int> mypair;
+	mypair.second = idx;
+	mypair.first = dRbetweenVectors(jets_jup.ak4pfjets_p4.at(idx),lep1.p4);
+	rankminDR_jup.push_back(mypair);
+      }
+      for (unsigned int idx = 0; idx < jets_jdown.ak4pfjets_p4.size(); ++idx){
+	if(nVetoLeptons==0) continue;
+	pair<float, int> mypair;
+	mypair.second = idx;
+	mypair.first = dRbetweenVectors(jets_jdown.ak4pfjets_p4.at(idx),lep1.p4);
+	rankminDR_jdown.push_back(mypair);
+      }
       sort(rankminDR.begin(),        rankminDR.end(),        CompareIndexValueSmallest);
+      sort(rankminDR_jup.begin(),    rankminDR_jup.end(),    CompareIndexValueSmallest);
+      sort(rankminDR_jdown.begin(),  rankminDR_jdown.end(),  CompareIndexValueSmallest);
       sort(rankminDR_lep2.begin(),   rankminDR_lep2.end(),   CompareIndexValueSmallest);
       sort(rankmaxDPhi.begin(),      rankmaxDPhi.end(),      CompareIndexValueGreatest);
       sort(rankmaxDPhi_lep2.begin(), rankmaxDPhi_lep2.end(), CompareIndexValueGreatest);
@@ -2124,8 +2175,26 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
 	  //StopEvt.Mjjj_lep2 = (jets.ak4pfjets_p4.at(jb21)+jets.ak4pfjets_p4.at(jb22)+jets.ak4pfjets_p4.at(jb23)).M();
 	}
 	
-      } // end if >0 jets      
-
+      } // end if >0 jets
+      if(jets_jup.ak4pfjets_p4.size()>0){
+	for (unsigned int idx = 0; idx < rankminDR_jup.size(); ++idx){
+	  if(nVetoLeptons==0) continue;
+	  if(!(jets_jup.ak4pfjets_passMEDbtag.at(rankminDR_jup[idx].second)) ) continue;
+	  StopEvt.Mlb_closestb_jup = (jets_jup.ak4pfjets_p4.at(rankminDR_jup[idx].second)+lep1.p4).M();
+	  break;
+	}
+	if(nVetoLeptons>0) StopEvt.Mlb_lead_bdiscr_jup = (jets_jup.ak4pfjets_p4.at(jetIndexSortedCSV_jup[0])+lep1.p4).M();
+      }
+      if(jets_jdown.ak4pfjets_p4.size()>0){
+	for (unsigned int idx = 0; idx < rankminDR_jdown.size(); ++idx){
+	  if(nVetoLeptons==0) continue;
+	  if(!(jets_jdown.ak4pfjets_passMEDbtag.at(rankminDR_jdown[idx].second)) ) continue;
+	  StopEvt.Mlb_closestb_jdown = (jets_jdown.ak4pfjets_p4.at(rankminDR_jdown[idx].second)+lep1.p4).M();
+	  break;
+	}
+	if(nVetoLeptons>0) StopEvt.Mlb_lead_bdiscr_jdown = (jets_jdown.ak4pfjets_p4.at(jetIndexSortedCSV_jdown[0])+lep1.p4).M();
+      }
+      
       if(fillZll){
       //
       // Zll Event Variables
@@ -2586,6 +2655,17 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
 
       if(jets_jdown.ak4pfjets_p4.size()>1) StopEvt.mindphi_met_j1_j2_rl_jdown = getMinDphi(StopEvt.pfmet_phi_rl_jdown,jets_jdown.ak4pfjets_p4.at(0),jets_jdown.ak4pfjets_p4.at(1));
 
+      //fill lepDPhi _rl
+      if( nVetoLeptons > 0 ) {
+	lep1.dphiMET_rl = getdphi(lep1.p4.Phi(),StopEvt.pfmet_phi_rl);
+	lep1.dphiMET_rl_jup = getdphi(lep1.p4.Phi(),StopEvt.pfmet_phi_rl_jup);
+	lep1.dphiMET_rl_jdown = getdphi(lep1.p4.Phi(),StopEvt.pfmet_phi_rl_jdown);
+      }
+      if( nVetoLeptons > 1 ) {
+	lep2.dphiMET_rl = getdphi(lep2.p4.Phi(),StopEvt.pfmet_phi_rl);
+	lep2.dphiMET_rl_jup = getdphi(lep2.p4.Phi(),StopEvt.pfmet_phi_rl_jup);
+	lep2.dphiMET_rl_jdown = getdphi(lep2.p4.Phi(),StopEvt.pfmet_phi_rl_jdown);
+      }
       
 
       if(!(StopEvt.pfmet >= skim_met) && !(StopEvt.pfmet_rl >= skim_met) && !(StopEvt.pfmet_rl_jup >= skim_met) && !(StopEvt.pfmet_rl_jdown >= skim_met) && !(StopEvt.pfmet_jup >= skim_met) && !(StopEvt.pfmet_jdown >= skim_met)) continue;
@@ -2599,7 +2679,9 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
       //////////////// 2015 Run II  //////////////////////
       if(!isSignalFromFileName){
 	StopEvt.HLT_MET = passHLTTriggerPattern("HLT_PFMET170_NoiseCleaned_v") || passHLTTriggerPattern("HLT_PFMET170_JetIdCleaned_v") || passHLTTriggerPattern("HLT_PFMET170_HBHECleaned_v") || passHLTTriggerPattern("HLT_PFMET170_NotCleaned_v"); 
-	StopEvt.HLT_MET100_MHT100 = passHLTTriggerPattern("HLT_PFMET100_PFMHT100_IDTight_v");
+	StopEvt.HLT_MET100_MHT100 = passHLTTriggerPattern("HLT_PFMET100_PFMHT100_IDTight_v") || passHLTTriggerPattern("HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_v");
+	StopEvt.HLT_MET110_MHT110 = passHLTTriggerPattern("HLT_PFMET110_PFMHT110_IDTight_v") || passHLTTriggerPattern("HLT_PFMETNoMu110_PFMHTNoMu110_IDTight_v");
+	StopEvt.HLT_MET120_MHT120 = passHLTTriggerPattern("HLT_PFMET120_PFMHT120_IDTight_v") || passHLTTriggerPattern("HLT_PFMETNoMu120_JetIdCleaned_PFMHTNoMu120_IDTight_v") || passHLTTriggerPattern("HLT_PFMETNoMu120_NoiseCleaned_PFMHTNoMu120_IDTight_v") || passHLTTriggerPattern("HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v");
 	StopEvt.HLT_SingleEl = passHLTTriggerPattern("HLT_Ele25_eta2p1_WPTight_Gsf_v") || passHLTTriggerPattern("HLT_Ele27_WP85_Gsf_v") ||passHLTTriggerPattern("HLT_Ele27_eta2p1_WPLoose_Gsf_v") || passHLTTriggerPattern("HLT_Ele27_eta2p1_WPTight_Gsf_v");
 	StopEvt.HLT_SingleMu = passHLTTriggerPattern("HLT_IsoMu20_v") || passHLTTriggerPattern("HLT_IsoTkMu20_v") || passHLTTriggerPattern("HLT_IsoMu22_v") || passHLTTriggerPattern("HLT_IsoTkMu22_v") || passHLTTriggerPattern("HLT_IsoMu24_v") || passHLTTriggerPattern("HLT_IsoTkMu24_v");
 	StopEvt.HLT_DiEl =  passHLTTriggerPattern("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v");
@@ -2620,6 +2702,19 @@ int babyMaker::looper(TChain* chain, char* output_name, int nEvents, char* path)
 	StopEvt.HLT_Photon120 = passHLTTriggerPattern("HLT_Photon120_v") > HLT_prescale(triggerName("HLT_Photon120_v")) ?  passHLTTriggerPattern("HLT_Photon120_v") : HLT_prescale(triggerName("HLT_Photon120_v"));
 	StopEvt.HLT_Photon250_NoHE = passHLTTriggerPattern("HLT_Photon250_NoHE_v") > HLT_prescale(triggerName("HLT_Photon250_NoHE_v")) ?  passHLTTriggerPattern("HLT_Photon250_NoHE_v") : HLT_prescale(triggerName("HLT_Photon250_NoHE_v"));	
 	StopEvt.HLT_CaloJet500_NoJetID = passHLTTriggerPattern("HLT_CaloJet500_NoJetID_v") > HLT_prescale(triggerName("HLT_CaloJet500_NoJetID_v")) ?  passHLTTriggerPattern("HLT_CaloJet500_NoJetID_v") : HLT_prescale(triggerName("HLT_CaloJet500_NoJetID_v"));
+	// HT triggers for trigger efficiency - from MT2
+	StopEvt.HLT_PFHT_unprescaled = passHLTTriggerPattern("HLT_PFHT800_v") || passHLTTriggerPattern("HLT_PFHT900_v");
+	int HT125 = passHLTTriggerPattern("HLT_PFHT125_v") ? HLT_prescale(triggerName("HLT_PFHT125_v")) : 0;
+	int HT200 = passHLTTriggerPattern("HLT_PFHT200_v") ? HLT_prescale(triggerName("HLT_PFHT200_v")) : 0;
+	int HT300 = passHLTTriggerPattern("HLT_PFHT300_v") ? HLT_prescale(triggerName("HLT_PFHT300_v")) : 0;
+	int HT350 = passHLTTriggerPattern("HLT_PFHT350_v") ? HLT_prescale(triggerName("HLT_PFHT350_v")) : 0;
+	int HT475 = passHLTTriggerPattern("HLT_PFHT475_v") ? HLT_prescale(triggerName("HLT_PFHT475_v")) : 0;
+	int HT600 = passHLTTriggerPattern("HLT_PFHT600_v") ? HLT_prescale(triggerName("HLT_PFHT600_v")) : 0;
+	//as we use those only for trigger efficiency measurements, we actually don't care about the exact prescale ...
+	if(HT125>0 || HT200>0 || HT300>0 || HT350>0 || HT475>0 || HT600>0)
+	  StopEvt.HLT_PFHT_prescaled = 1;
+	else
+	  StopEvt.HLT_PFHT_prescaled = 0;
       }
       
      ///////////////////////////////////////////////////////////

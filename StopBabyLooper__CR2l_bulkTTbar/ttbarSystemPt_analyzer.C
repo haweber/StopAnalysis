@@ -29,7 +29,8 @@ int ttbarSystemPt_analyzer(){
   double xRebins[nRebins+1]{ 0.0, 50.0, 100.0, 150.0, 200.0, 250.0, 350.0, 450.0, 600.0 };
   double xRebinsSF[nRebins]{   1.0,   1.0,   1.0,   1.0,   1.0,   0.5,  0.5,  0.33333  };
 
-  int bin_beginUncertainty = 3; // which bin to begin at, ICHEP=3
+  int bin_beginUncertainty = 1; // which bin to begin at, full range=1, =0GeV
+  //int bin_beginUncertainty = 3; // which bin to begin at, ICHEP=3, =100GeV
 
 
   // Get Data File
@@ -61,16 +62,16 @@ int ttbarSystemPt_analyzer(){
 
   // Region List
   std::vector<std::string> regionList;
-  regionList.push_back("ee");
+  //regionList.push_back("ee");
   regionList.push_back("emu");
-  regionList.push_back("mumu");
-  regionList.push_back("incl");
+  //regionList.push_back("mumu");
+  //regionList.push_back("incl");
 
   std::vector<std::string> regionList_tex;
-  regionList_tex.push_back("$ee$");
+  //regionList_tex.push_back("$ee$");
   regionList_tex.push_back("$e\\mu$");
-  regionList_tex.push_back("$\\mu\\mu$");
-  regionList_tex.push_back("$ee/e\\mu/\\mu\\mu$");
+  //regionList_tex.push_back("$\\mu\\mu$");
+  //regionList_tex.push_back("$ee/e\\mu/\\mu\\mu$");
 
 
   // Gen Classification
