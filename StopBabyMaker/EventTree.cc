@@ -73,15 +73,16 @@ void EventTree::FillCommon (const std::string &root_file_name)
     calomet_phi = evt_calometPhi();
 
     is_data = evt_isRealData();
-
     // the recommended met filters //
     if(!signal){
       if(nvtxs>0) filt_met = true;
       else filt_met = false;
       filt_met = filt_met*filt_globalTightHalo2016()*filt_ecalTP()*filt_eeBadSc()*filt_hbheNoise()*filt_hbheNoiseIso();
 
-      if (is_data) filt_badMuonFilter = badMuonFilter(); //still some problems with MC
-      filt_badChargedCandidateFilter = badChargedCandidateFilter();
+   //   if(is_data) filt_badMuonFilter = badMuonFilterV2(); //still some problems with MC
+     // if(is_data) filt_badChargedCandidateFilter = badChargedCandidateFilterV2();
+       filt_badMuonFilter = badMuonFilterV2(); //still some problems with MC
+       filt_badChargedCandidateFilter = badChargedCandidateFilterV2();
       filt_cscbeamhalo = filt_cscBeamHalo();
       filt_cscbeamhalo2015 = filt_cscBeamHalo2015();
       filt_globaltighthalo2016 = filt_globalTightHalo2016();
@@ -98,7 +99,10 @@ void EventTree::FillCommon (const std::string &root_file_name)
       filt_trkPOG_tms = filt_trkPOG_toomanystripclus53X();
       filt_hbhenoise = filt_hbheNoise(); // hbheNoiseFilter_25ns();
       filt_hbheisonoise = filt_hbheNoiseIso();//hbheIsoNoiseFilter();
-    }
+      // if(is_data) filt_badmuons = filt_badMuons();
+      // if(is_data) filt_duplicatemuons = filt_duplicateMuons();
+      // if(is_data) filt_nobadmuons = filt_noBadMuons();
+   }
     
     if (!is_data)
     {
@@ -106,7 +110,7 @@ void EventTree::FillCommon (const std::string &root_file_name)
       xsec     = evt_xsec_incl();
       kfactor  = evt_kfactor();
 //      pu_nvtxs = puInfo_nPUvertices().at(6);
-      pu_ntrue = puInfo_trueNumInteractions().at(0);
+      if(puInfo_trueNumInteractions().size()>0) pu_ntrue = puInfo_trueNumInteractions().at(0);
       genweights = cms3.genweights();
       genweightsID = cms3.genweightsID();
 
@@ -114,7 +118,7 @@ void EventTree::FillCommon (const std::string &root_file_name)
 	sparms_values = sparm_values();
 	for ( auto name : sparm_names() )
 	  sparms_names.push_back(name.Data());
-          sparms_subProcessId     = sparm_subProcessId();	
+        sparms_subProcessId = sparm_subProcessId();
       }
       genmet = gen_met();
       genmet_phi = gen_metPhi();
@@ -140,9 +144,9 @@ void EventTree::FillCommon (const std::string &root_file_name)
 
  
     }
-    dataset = evt_dataset().at(0).Data();
+    if(evt_dataset().size()>0) dataset = evt_dataset().at(0).Data();
     filename = root_file_name;
-    cms3tag = evt_CMS3tag().at(0).Data();
+    if(evt_CMS3tag().size()>0) cms3tag = evt_CMS3tag().at(0).Data();
 
     firstGoodVtxIdx = firstGoodVertex();   
  
@@ -217,6 +221,7 @@ void EventTree::Reset ()
     firstVtx_posZ     = -9999.;
     firstVtx_posp4    = LorentzVector(0,0, 0,0);
 */
+
     pfmet                = -9999.;
     pfmet_phi            = -9999.;
     pfmet_jup            = -9999.;
@@ -229,6 +234,16 @@ void EventTree::Reset ()
     pfmet_phi_rl_jdown         = -9999.;
     pfmet_rl_jup             = -9999.;
     pfmet_phi_rl_jup         = -9999.;
+    pfmet_egclean             = -9999.;
+    pfmet_egclean_phi         = -9999.;
+    pfmet_muegclean           = -9999.;
+    pfmet_muegclean_phi       = -9999.;
+    pfmet_muegcleanfix        = -9999.;
+    pfmet_muegcleanfix_phi    = -9999.;
+    pfmet_uncorr              = -9999.;
+    pfmet_uncorr_phi          = -9999.;
+    pfmet_original            = -9999.;
+    pfmet_original_phi        = -9999.;
     calomet              = -9999.;
     calomet_phi          = -9999.;
     scale1fb             = -9999.;
@@ -378,6 +393,7 @@ void EventTree::Reset ()
     HLT_SingleMu           = -9999.; 
     HLT_SingleEl           = -9999.;
     HLT_MET                = -9999.;
+    HLT_MET_MHT            = -9999.;
     HLT_MET100_MHT100      = -9999.;
     HLT_MET110_MHT110      = -9999.;
     HLT_MET120_MHT120      = -9999.;
@@ -399,7 +415,9 @@ void EventTree::Reset ()
     HLT_Photon165_HE10 = -9999.;
 
     HLT_Photon120 = -9999.;
+    HLT_Photon200 = -9999.;
     HLT_Photon250_NoHE = -9999.;
+    HLT_Photon300_NoHE = -9999.;
     HLT_CaloJet500_NoJetID = -9999.;
 
     EA_fixgridfastjet_all_rho = -9999.;
@@ -500,6 +518,9 @@ void EventTree::Reset ()
     filt_jetWithBadMuon_jup    = false;
     filt_jetWithBadMuon_jdown  = false;
     filt_pfovercalomet         = false;
+    filt_badmuons              = false;
+    filt_duplicatemuons        = false;
+    filt_nobadmuons            = false;
     
     nPhotons             = -9999;
     ph_selectedidx       = -9999;
@@ -573,6 +594,16 @@ void EventTree::SetBranches (TTree* tree)
     tree->Branch("pfmet_phi_rl_jup", &pfmet_phi_rl_jup);
     tree->Branch("pfmet_rl_jdown", &pfmet_rl_jdown);
     tree->Branch("pfmet_phi_rl_jdown", &pfmet_phi_rl_jdown);
+    tree->Branch("pfmet_egclean", &pfmet_egclean);
+    tree->Branch("pfmet_egclean_phi", &pfmet_egclean_phi);
+    tree->Branch("pfmet_muegclean", &pfmet_muegclean);
+    tree->Branch("pfmet_muegclean_phi", &pfmet_muegclean_phi);
+    tree->Branch("pfmet_muegcleanfix", &pfmet_muegcleanfix);
+    tree->Branch("pfmet_muegcleanfix_phi", &pfmet_muegcleanfix_phi);
+    tree->Branch("pfmet_uncorr", &pfmet_uncorr);    
+    tree->Branch("pfmet_uncorr_phi", &pfmet_uncorr_phi);
+    tree->Branch("pfmet_original", &pfmet_original);    
+    tree->Branch("pfmet_original_phi", &pfmet_original_phi);
     tree->Branch("scale1fb", &scale1fb);
     tree->Branch("xsec", &xsec);
     tree->Branch("xsec_uncert", &xsec_uncert);
@@ -697,6 +728,7 @@ void EventTree::SetBranches (TTree* tree)
     tree->Branch("HLT_SingleEl", &HLT_SingleEl );
     tree->Branch("HLT_SingleMu", &HLT_SingleMu );
     tree->Branch("HLT_MET", &HLT_MET);
+    tree->Branch("HLT_MET_MHT", &HLT_MET_MHT);
     tree->Branch("HLT_MET100_MHT100", &HLT_MET100_MHT100);
     tree->Branch("HLT_MET110_MHT110", &HLT_MET110_MHT110);
     tree->Branch("HLT_MET120_MHT120", &HLT_MET120_MHT120);
@@ -775,6 +807,9 @@ void EventTree::SetMETFilterBranches (TTree* tree)
     tree->Branch("filt_jetWithBadMuon_jup", &filt_jetWithBadMuon_jup);
     tree->Branch("filt_jetWithBadMuon_jdown", &filt_jetWithBadMuon_jdown);
     tree->Branch("filt_pfovercalomet", &filt_pfovercalomet);
+    tree->Branch("filt_badmuons", &filt_badmuons);
+    tree->Branch("filt_duplicatemuons", &filt_duplicatemuons);
+    tree->Branch("filt_nobadmuons", &filt_nobadmuons);
 
 }
 
@@ -815,7 +850,9 @@ void EventTree::SetPhotonBranches (TTree* tree)
     tree->Branch("HLT_Photon175", &HLT_Photon175);
     tree->Branch("HLT_Photon165_HE10", &HLT_Photon165_HE10);
     tree->Branch("HLT_Photon120", &HLT_Photon120);
+    tree->Branch("HLT_Photon200", &HLT_Photon200);
     tree->Branch("HLT_Photon250_NoHE", &HLT_Photon250_NoHE);
+    tree->Branch("HLT_Photon300_NoHE", &HLT_Photon300_NoHE);
     tree->Branch("HLT_CaloJet500_NoJetID", &HLT_CaloJet500_NoJetID);
 }
 

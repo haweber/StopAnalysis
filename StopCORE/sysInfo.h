@@ -2,10 +2,10 @@
 #define sysInfo_H
 
 // SNT CORE
-#include "../../CORE/MCSelections.h"
+#include "MCSelections.h"
 
 // stopCORE
-//#include "eventWeight_bTagSF.h"
+#include "eventWeight_bTagSF.h"
 #include "eventWeight_lepSF.h"
 #include "sampleInfo.h"
 #include "stop_1l_babyAnalyzer.h"
@@ -13,7 +13,9 @@
 // ROOT
 #include "TFile.h"
 #include "TH1.h"
+#include "TH2.h"
 #include "TH3.h"
+#include "TEfficiency.h"
 #include "Math/GenVector/VectorUtil.h"
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;
@@ -50,6 +52,8 @@ namespace sysInfo{
            k_topPtSFDown,
            k_metResUp,
            k_metResDown,
+	   k_metTTbarUp,
+	   k_metTTbarDown,
            k_ttbarSysPtUp,
            k_ttbarSysPtDown,
            k_nuPtSF_Up,
@@ -70,6 +74,10 @@ namespace sysInfo{
            k_ISRDown,
            k_xsecUp,
            k_xsecDown,
+	   k_puUp,
+	   k_puDown,
+	   k_tauSFUp,
+	   k_tauSFDown,
            k_nSys
   };
 
@@ -80,6 +88,14 @@ namespace sysInfo{
   typedef std::vector< sysInfo::ID > vect_id;
   typedef std::pair< sysInfo::ID, double > pair_id_wgt;
   typedef std::vector< std::pair< sysInfo::ID, double > > vect_id_wgt;
+
+	//
+	// Other namespace functions
+	//
+	double GetEventWeight( ID whichSyst );
+	double GetEventWeight_corridor( ID whichSyst );
+	double GetEventWeight_SRbulk( ID whichSyst );
+	double GetEventWeight_CR2lbulk( ID whichSyst );
 
 
   //
@@ -117,6 +133,9 @@ namespace sysInfo{
 
     // Sample info 
     sampleInfo::sampleUtil *sample_info;
+    
+    // Lost lepton analyis uses met with 2nd lepton removed
+    bool add2ndLepToMet;
   
     // Counter histograms stored in babies
     TH1D *h_bkg_counter;
@@ -128,19 +147,27 @@ namespace sysInfo{
   
     // SR trigger efficiency histos
     TFile *f_cr2lTrigger_sf;
-    TH2D *h_cr2lTrigger_sf;
-
+    TEfficiency *h_cr2lTrigger_sf_el;
+    TEfficiency *h_cr2lTrigger_sf_mu;
+    
     // bTag machinery
-    bool useBTagSFs_fromUtils;
-    //eventWeight_bTagSF *bTagSFUtil;
+    bool useBTagSFs_fromFiles;
+    eventWeight_bTagSF *bTagSFUtil;
 
     // Lepton SF machinery
-    bool useLepSFs_fromUtils;
+    bool useLepSFs_fromFiles;
     eventWeight_lepSF *lepSFUtil;
 
-    // Lost lepton analyis uses met with 2nd lepton removed
-    bool add2ndLepToMet;
+    // Pileup weight machinery;
+    TFile *f_pu;
+    TH1D *h_pu_wgt;
+    TH1D *h_pu_wgt_up;
+    TH1D *h_pu_wgt_dn;
 
+    // Tau Wgt Machinery 
+    TFile *f_lepEff;
+    TH2D *h_recoEff_tau;
+    
     //
     // Utility Vars
     //
@@ -148,6 +175,9 @@ namespace sysInfo{
     
     // Event weights for each systematic
     double sys_wgts[k_nSys];
+		double sys_wgts_corridor[k_nSys];
+		double sys_wgts_SRbulk[k_nSys];
+	  double sys_wgts_CR2lbulk[k_nSys];
 
     // Variables to form baseline event weight
     int mStop;
@@ -179,7 +209,17 @@ namespace sysInfo{
     double sf_bTagEffHF_dn;
     double sf_bTagEffLF_up;
     double sf_bTagEffLF_dn;
-
+    double sf_bTag_FS_up;
+    double sf_bTag_FS_dn;
+    double sf_bTag_tight;
+    double sf_bTagEffHF_tight_up;
+    double sf_bTagEffHF_tight_dn;
+    double sf_bTagEffLF_tight_up;
+    double sf_bTagEffLF_tight_dn;
+    double sf_bTag_tight_FS_up;
+    double sf_bTag_tight_FS_dn;
+    
+    
     bool   apply_lep_sf;
     double sf_lep;
     double sf_lep_up;
@@ -189,6 +229,11 @@ namespace sysInfo{
     double sf_vetoLep;
     double sf_vetoLep_up;
     double sf_vetoLep_dn;
+
+    bool   apply_tau_sf;
+    double sf_tau;
+    double sf_tau_up;
+    double sf_tau_dn;
   
     bool   apply_lepFS_sf;
     double sf_lepFS;
@@ -204,6 +249,14 @@ namespace sysInfo{
     double sf_metRes;
     double sf_metRes_up;
     double sf_metRes_dn;
+		double sf_metRes_corridor;
+		double sf_metRes_corridor_up;
+		double sf_metRes_corridor_dn;
+  
+    bool   apply_metTTbar_sf;
+    double sf_metTTbar;
+    double sf_metTTbar_up;
+    double sf_metTTbar_dn;
   
     bool   apply_ttbarSysPt_sf;
     double sf_ttbarSysPt;
@@ -214,6 +267,11 @@ namespace sysInfo{
     double sf_ISR;
     double sf_ISR_up;
     double sf_ISR_dn;
+
+    bool apply_pu_sf;
+    double sf_pu;
+    double sf_pu_up;
+    double sf_pu_dn;
 
     bool   apply_sample_sf;
     double sf_sample;
@@ -244,8 +302,12 @@ namespace sysInfo{
     double sf_xsec_dn;
 
          
-    evtWgtInfo( sampleInfo::ID sample, bool useBTagUtils=false, bool useLepSFUtils=false, bool use2ndLepToMet=false );
-    ~evtWgtInfo();
+    evtWgtInfo();
+    // ~evtWgtInfo();
+
+    void setUp( sampleInfo::ID sample, bool useBTagUtils=false, bool useLepSFUtils=false, bool use2ndLepToMet=false );
+
+		void cleanUp();
 
     void getWeightHistogramFromBaby( TFile *sourceFile );
 
@@ -267,17 +329,25 @@ namespace sysInfo{
 
     void getCR2lTriggerWeight( double &wgt_trigger, double &wgt_trigger_up, double &wgt_trigger_dn );
 
-    void getBTagWeight( double &wgt_btagsf, double &wgt_btagsf_hf_up, double &wgt_btagsf_hf_dn, double &wgt_btagsf_lf_up, double &wgt_btagsf_lf_dn );
+    void getBTagWeight( int WP, double &wgt_btagsf, double &wgt_btagsf_hf_up, double &wgt_btagsf_hf_dn, double &wgt_btagsf_lf_up, double &wgt_btagsf_lf_dn, double &wgt_btagsf_fs_up, double &wgt_btagsf_fs_dn );
+    
+    void getBTagWeight_tightWP( double &wgt_btagsf_tight, double &wgt_btagsf_hf_tight_up, double &wgt_btagsf_hf_tight_dn, double &wgt_btagsf_lf_tight_up, double &wgt_btagsf_lf_tight_dn, double &wgt_btagsf_tight_fs_up, double &wgt_btagsf_tight_fs_dn );
   
-    void getBTagWeight_fromUtils( double &wgt_btagsf, double &wgt_btagsf_hf_up, double &wgt_btagsf_hf_dn, double &wgt_btagsf_lf_up, double &wgt_btagsf_lf_dn ); 
+    void getBTagWeight_fromFiles( int WP, double &wgt_btagsf, double &wgt_btagsf_hf_up, double &wgt_btagsf_hf_dn, double &wgt_btagsf_lf_up, double &wgt_btagsf_lf_dn, double &wgt_btagsf_tight_fs_up, double &wgt_btagsf_tight_fs_dn ); 
   
     void getLepSFWeight( double &weight_lepSF, double &weight_lepSF_Up, double &weight_lepSF_Dn, double &weight_lepFSSF, double &weight_lepFSSF_Up, double &weight_lepFSSF_Dn, double &weight_vetoLepSF, double &weight_vetoLepSF_Up, double &weight_vetoLepSF_Dn );
 
-    void getLepSFWeight_fromUtils( double &weight_lepSF, double &weight_lepSF_Up, double &weight_lepSF_Dn, double &weight_lepFSSF, double &weight_lepFSSF_Up, double &weight_lepFSSF_Dn, double &weight_vetoLepSF, double &weight_vetoLepSF_Up, double &weight_vetoLepSF_Dn ); 
+    void getTauSFWeight( double &weight_tau, double &weight_tau_up, double &weight_tau_dn );
+
+    void getLepSFWeight_fromFiles( double &weight_lepSF, double &weight_lepSF_Up, double &weight_lepSF_Dn, double &weight_lepFSSF, double &weight_lepFSSF_Up, double &weight_lepFSSF_Dn, double &weight_vetoLepSF, double &weight_vetoLepSF_Up, double &weight_vetoLepSF_Dn ); 
   
     void getTopPtWeight( double &weight_topPt, double &weight_topPt_up, double &weight_topPt_dn );
 
     void getMetResWeight( double &weight_metRes, double &weight_metRes_up, double &weight_metRes_dn );
+    
+    void getMetResWeight_corridor( double &weight_metRes, double &weight_metRes_up, double &weight_metRes_dn );
+
+    void getMetTTbarWeight( double &weight_metTTbar, double &weight_metTTbar_up, double &weight_metTTbar_dn );
 
     void getTTbarSysPtSF( double &weight_ttbarSysPt, double &weight_ttbarSysPt_up, double &weight_ttbarSysPt_dn );
 
@@ -296,13 +366,21 @@ namespace sysInfo{
     void getISRWeight( double &weight_ISR, double &weight_ISR_up, double &weight_ISR_dn );
 
     void getISRnJetsWeight( double &weight_ISR, double &weight_ISR_up, double &weight_ISR_dn );
+    
+    void getPileupWeight( double &weight_pu, double &weight_pu_up, double &weight_pu_dn );
 
     double getSampleWeight( sampleInfo::ID sample );
 
   }; // end class def
 
 
-}
+} // End of namespace sysInfo
+
+
+// Extern wgtInfo for easy access
+#ifndef __CINT__
+extern sysInfo::evtWgtInfo wgtInfo;
+#endif
 
 
 //////////////////////////////////////////////////////////////////////

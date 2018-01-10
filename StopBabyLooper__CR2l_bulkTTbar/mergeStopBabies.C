@@ -1,51 +1,6 @@
-#include "TROOT.h"
-#include "Riostream.h"
-#include "TFile.h"
+#include "stopBabyLooper__CR2l_bulkTTbar.h"
 
-#include <algorithm>
-#include <string>
-#include <vector>
-
-#include "../StopCORE/sampleInfo.h"
-#include "../StopCORE/genClassyInfo.h"
-#include "../StopCORE/categoryInfo.h"
-#include "../StopCORE/sysInfo.h"
-
-
-//
-// Utility Struct
-// 
-struct mergeUtil{
-  
-  sampleInfo::ID id;
-  bool useZeroed;
-  bool useRescaled;
-
-  mergeUtil():useZeroed(false),useRescaled(false){}
-  mergeUtil(sampleInfo::ID ID):id(ID),useZeroed(false),useRescaled(false){}
-  mergeUtil(sampleInfo::ID ID, bool use_zeroed, bool use_rescale):id(ID),useZeroed(use_zeroed),useRescaled(use_rescale){}
-  
-  void reset(){
-    useZeroed=false;
-    useRescaled=false;
-  }
-};
-
-
-//
-// Functions
-//
-int mergeEm( sampleInfo::ID target, std::vector< mergeUtil > sources, std::string f_input_dir, std::string f_output_dir );
-
-
-//
-// Main
-//
-int mergeStopBabies( std::string f_input_dir, std::string f_output_dir, bool use_zeroed_samp=true ){
-
-  // bools to select input samples
-  bool use_rescaled_samp = false;
-
+void mergeStopBabies( std::string f_input_dir, std::string f_output_dir, bool use_zeroed_samp ){
 
   // Get list of input samples
   std::vector< std::pair< sampleInfo::ID, std::vector< mergeUtil > > > addList;
@@ -57,6 +12,7 @@ int mergeStopBabies( std::string f_input_dir, std::string f_output_dir, bool use
   addSet.second.push_back( mergeUtil(sampleInfo::k_ttbar_singleLeptFromT_madgraph_pythia8_ext1) );
   addSet.second.push_back( mergeUtil(sampleInfo::k_ttbar_singleLeptFromTbar_madgraph_pythia8_ext1) );
   addSet.second.push_back( mergeUtil(sampleInfo::k_ttbar_diLept_madgraph_pythia8_ext1) );
+  addSet.second.push_back( mergeUtil(sampleInfo::k_ttbar_diLept_madgraph_pythia8) );
   addList.push_back(addSet);
   addSet.second.clear();
 
@@ -66,15 +22,23 @@ int mergeStopBabies( std::string f_input_dir, std::string f_output_dir, bool use
   addSet.second.push_back( mergeUtil(sampleInfo::k_t_sch_4f_amcnlo_pythia8,use_zeroed_samp,false) );
   addSet.second.push_back( mergeUtil(sampleInfo::k_t_tch_4f_powheg_pythia8) );
   addSet.second.push_back( mergeUtil(sampleInfo::k_tbar_tch_4f_powheg_pythia8) );
-  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tW_5f_powheg_pythia8) );
-  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tbarW_5f_powheg_pythia8) );
+  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tW_5f_powheg_pythia8_noHadDecays) );
+  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tbarW_5f_powheg_pythia8_noHadDecays) );
+  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tW_5f_powheg_pythia8_noHadDecays_ext1) );
+  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tbarW_5f_powheg_pythia8_noHadDecays_ext1) );
+  //addSet.second.push_back( mergeUtil(sampleInfo::k_t_tW_5f_powheg_pythia8) );
+  //addSet.second.push_back( mergeUtil(sampleInfo::k_t_tbarW_5f_powheg_pythia8) );
   addList.push_back(addSet);
   addSet.second.clear();
 
   // single t, tW
   addSet.first = sampleInfo::k_singleT_tW;
-  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tW_5f_powheg_pythia8) );
-  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tbarW_5f_powheg_pythia8) );
+  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tW_5f_powheg_pythia8_noHadDecays) );
+  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tbarW_5f_powheg_pythia8_noHadDecays) );
+  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tW_5f_powheg_pythia8_noHadDecays_ext1) );
+  addSet.second.push_back( mergeUtil(sampleInfo::k_t_tbarW_5f_powheg_pythia8_noHadDecays_ext1) );
+  //addSet.second.push_back( mergeUtil(sampleInfo::k_t_tW_5f_powheg_pythia8) );
+  //addSet.second.push_back( mergeUtil(sampleInfo::k_t_tbarW_5f_powheg_pythia8) );
   addList.push_back(addSet);
   addSet.second.clear();
 
@@ -230,7 +194,7 @@ int mergeStopBabies( std::string f_input_dir, std::string f_output_dir, bool use
 
   }
   
-  return 0;
+  return;
 }
 
 

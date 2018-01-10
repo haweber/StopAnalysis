@@ -122,6 +122,17 @@ public:
     float pfmet_phi_rl_jup;
     float pfmet_rl_jdown;
     float pfmet_phi_rl_jdown;
+    float pfmet_egclean;
+    float pfmet_egclean_phi;
+    float pfmet_muegclean;
+    float pfmet_muegclean_phi;
+    float pfmet_muegcleanfix;
+    float pfmet_muegcleanfix_phi;
+    float pfmet_uncorr;
+    float pfmet_uncorr_phi;
+    float pfmet_original;
+    float pfmet_original_phi;
+   
     float calomet;
     float calomet_phi;
 
@@ -152,6 +163,9 @@ public:
     bool  filt_jetWithBadMuon_jup;
     bool  filt_jetWithBadMuon_jdown;
     bool  filt_pfovercalomet;
+    bool  filt_badmuons;
+    bool  filt_duplicatemuons;
+    bool  filt_nobadmuons;
     
     float dR_lep_leadb;
     float dR_lep2_leadb;    
@@ -263,6 +277,7 @@ public:
     int HLT_SingleMu; 
     int HLT_SingleEl;
     int HLT_MET;
+    int HLT_MET_MHT;
     int HLT_MET100_MHT100;
     int HLT_MET110_MHT110;
     int HLT_MET120_MHT120;
@@ -283,7 +298,9 @@ public:
     int HLT_Photon175;
     int HLT_Photon165_HE10;
     int HLT_Photon120;//from MT2
+    int HLT_Photon200;
     int HLT_Photon250_NoHE;//from MT2
+    int HLT_Photon300_NoHE;
     int HLT_CaloJet500_NoJetID;//from Vince's code
 
     float EA_fixgridfastjet_all_rho;//to do photon EA on the fly

@@ -6,11 +6,12 @@
 #
 ANALYSIS_NAME=Stop_1l
 
-BABY_VERSION=v14
+BABY_VERSION=v24
 
 TARBALL_NAME=forCondor_stopBabyMaker_80x
 
-INSTRUCTIONS_FILE=instructions.txt
+INSTRUCTIONS_FILE=instructions_2017.txt
+#INSTRUCTIONS_FILE=instructions.txt
 #INSTRUCTIONS_FILE=instructions_test.txt
 
 EXECUTABLE_NAME=condor_executable.sh
@@ -87,7 +88,7 @@ if [ ! -d $TARBALL_NAME ]; then
     sed -i '1i COREPATH = ../CORE/' $CONDOR_DIR_NAME/$MAKER_NAME/Makefile
     
     cp -r $MAKER_DIR/xsec_stop_13TeV.root $CONDOR_DIR_NAME/$MAKER_NAME/
-    cp -r $MAKER_DIR/puWeights_2015data_2p2fbinv.root $CONDOR_DIR_NAME/$MAKER_NAME/
+    cp -r $MAKER_DIR/puWeights_2016data_36p6fbinv.root $CONDOR_DIR_NAME/$MAKER_NAME/
     cp -r $MAKER_DIR/*.dat $CONDOR_DIR_NAME/$MAKER_NAME/
     cp -r $MAKER_DIR/*.C $CONDOR_DIR_NAME/$MAKER_NAME/
     cp -r $MAKER_DIR/stop_variables/ $CONDOR_DIR_NAME/$MAKER_NAME/

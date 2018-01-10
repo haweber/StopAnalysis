@@ -43,7 +43,8 @@ bool PassElectronPreSelections(unsigned int elIdx,float pt, float eta){
 bool PassMuonPreSelections(unsigned int muIdx,float pt, float eta){
   if(mus_p4().at(muIdx).pt() < pt) return false;
   if(fabs(mus_p4().at(muIdx).eta()) > eta) return false;
-  if(!muonID(muIdx, STOP_tight_v2)) return false;  //mini-isolation applied at 0.1
+  if(!muonID(muIdx, STOP_medium_v3)) return false;
+//  if(!muonID(muIdx, STOP_tight_v2)) return false;  //mini-isolation applied at 0.1
   return true;
 }
 
@@ -53,13 +54,15 @@ bool PassJetPreSelections(unsigned int jetIdx,float pt, float eta, bool passjid,
           // get uncorrected jet p4 to use as input for corrections
         LorentzVector pfjet_p4_uncor = pfjets_p4().at(jetIdx) * cms3.pfjets_undoJEC().at(jetIdx);
 
+        double corr = 1;
+        if (applynewcorr) {
           // get L1FastL2L3Residual total correction
           corrector->setRho   ( cms3.evt_fixgridfastjet_all_rho() );
           corrector->setJetA  ( cms3.pfjets_area().at(jetIdx)       );
           corrector->setJetPt ( pfjet_p4_uncor.pt()               );
           corrector->setJetEta( pfjet_p4_uncor.eta()              );
-          double corr = corrector->getCorrection();
-
+          corr = corrector->getCorrection();
+        }
           // check for negative correction
           if (corr < 0. && fabs(pfjet_p4_uncor.eta()) < 4.7) {
             std::cout << "ScanChain::Looper: WARNING: negative jet correction: " << corr
@@ -90,11 +93,11 @@ bool isVetoTrack(int ipf, LorentzVector lepp4_, int charge){
       //if not electron or muon
       if(abs(pfcands_particleId().at(ipf))!=11 && abs(pfcands_particleId().at(ipf))!=13){
           if(pfcands_p4().at(ipf).pt() < 10.) return false;
-          if(TrackIso(ipf,0.3,0.1)/pfcands_p4().at(ipf).pt() >0.1) return false;
+          if(pfcands_trackIso().at(ipf)/pfcands_p4().at(ipf).pt() >0.1) return false;
           if(pfcands_charge().at(ipf) * charge > 0) return false;
       }else{
           if(pfcands_p4().at(ipf).pt() < 5.) return false;
-          if(TrackIso(ipf,0.3,0.1)/pfcands_p4().at(ipf).pt()  >0.2) return false;
+          if(pfcands_trackIso().at(ipf)/pfcands_p4().at(ipf).pt()  >0.2) return false;
       }
       return true;
 }
@@ -105,29 +108,29 @@ bool isVetoTrack_v2(int ipf, LorentzVector lepp4_, int charge){
       if(abs(pfcands_particleId().at(ipf))!=11 && abs(pfcands_particleId().at(ipf))!=13){
           if(pfcands_p4().at(ipf).pt() < 10.) return false;
 	  if(pfcands_p4().at(ipf).pt() > 60. ){
-	    if(TrackIso(ipf,0.3,0.1) > 6.0 ) return false;
+	    if(pfcands_trackIso().at(ipf) > 6.0 ) return false;
 	  }
 	  else{
-	    if(TrackIso(ipf,0.3,0.1)/pfcands_p4().at(ipf).pt() > 0.1) return false;
+	    if(pfcands_trackIso().at(ipf)/pfcands_p4().at(ipf).pt() > 0.1) return false;
 	  }
           if(pfcands_charge().at(ipf) * charge > 0) return false;
       }
       else if(abs(pfcands_particleId().at(ipf))==11 ){
 	if(pfcands_p4().at(ipf).pt() < 5.) return false;
 	if(pfcands_p4().at(ipf).pt() > 60.0 ){
-	  if(TrackIso(ipf,0.3,0.1) > 6.0 ) return false;
+	  if(pfcands_trackIso().at(ipf) > 6.0 ) return false;
 	}
 	else{
-	  if(TrackIso(ipf,0.3,0.1)/pfcands_p4().at(ipf).pt() > 0.1) return false;
+	  if(pfcands_trackIso().at(ipf)/pfcands_p4().at(ipf).pt() > 0.1) return false;
 	}
       }
       else if(abs(pfcands_particleId().at(ipf))==13 ){
 	if(pfcands_p4().at(ipf).pt() < 5.) return false;
 	if(pfcands_p4().at(ipf).pt() > 30.0 ){
-	  if(TrackIso(ipf,0.3,0.1) > 6.0 ) return false;
+	  if(pfcands_trackIso().at(ipf) > 6.0 ) return false;
 	}
 	else{
-	  if(TrackIso(ipf,0.3,0.1)/pfcands_p4().at(ipf).pt() > 0.2) return false;
+	  if(pfcands_trackIso().at(ipf)/pfcands_p4().at(ipf).pt() > 0.2) return false;
 	}
       }
       return true;
@@ -139,10 +142,12 @@ bool isVetoTrack_v3(int ipf, LorentzVector lepp4_, int charge){
       if(abs(pfcands_particleId().at(ipf))!=11 && abs(pfcands_particleId().at(ipf))!=13){
           if(pfcands_p4().at(ipf).pt() <= 10.) return false;
 	  if(pfcands_p4().at(ipf).pt() > 60. ){
-	    if(TrackIso(ipf,0.3,0.1) > 6.0 ) return false;
+	    //if(TrackIso(ipf,0.3,0.1,false) > 6.0 ) return false;
+	    if(pfcands_trackIso().at(ipf) > 6.0 ) return false;
 	  }
 	  else{
-	    if(TrackIso(ipf,0.3,0.1)/pfcands_p4().at(ipf).pt() > 0.1) return false;
+	    //if(TrackIso(ipf,0.3,0.1,false)/pfcands_p4().at(ipf).pt() > 0.1) return false;
+	    if(pfcands_trackIso().at(ipf)/pfcands_p4().at(ipf).pt() > 0.1) return false;
 	  }
           if(pfcands_charge().at(ipf) * charge > 0) return false;
       }
@@ -291,7 +296,7 @@ float getdphi( float phi1 , float phi2 ){
 }
 
 float dRbetweenVectors(LorentzVector& vec1,LorentzVector& vec2 ){                                                                                                              
-  float dphi = std::min(::fabs(vec1.Phi() - vec2.Phi()), 2 * M_PI - fabs(vec1.Phi() - vec2.Phi()));
+  float dphi = std::min(fabs(vec1.Phi() - vec2.Phi()), (float) (2 * M_PI - fabs(vec1.Phi() - vec2.Phi())));
   float deta = vec1.Eta() - vec2.Eta();
 
   return sqrt(dphi*dphi + deta*deta);
